@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon FBA Launch Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --bg-tertiary: #334155;
+            --bg-input: #0F172A;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --accent-blue: #3B82F6;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+            --accent-amber: #F59E0B;
+            --accent-purple: #8B5CF6;
+            --accent-orange: #F97316;
+            --border-color: #334155;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --font: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* === HEADER === */
+        .header {
+            padding: 2rem 0 1rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }
+
+        /* === HERO SUMMARY CARDS === */
+        .hero-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+        .hero-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            text-align: center;
+        }
+        .hero-card .hero-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        .hero-card .hero-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        .hero-card .hero-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+        .hero-card.red { border-top: 3px solid var(--accent-red); }
+        .hero-card.red .hero-value { color: var(--accent-red); }
+        .hero-card.green { border-top: 3px solid var(--accent-green); }
+        .hero-card.green .hero-value { color: var(--accent-green); }
+        .hero-card.blue { border-top: 3px solid var(--accent-blue); }
+        .hero-card.blue .hero-value { color: var(--accent-blue); }
+        .hero-card.amber { border-top: 3px solid var(--accent-amber); }
+        .hero-card.amber .hero-value { color: var(--accent-amber); }
+
+        /* === SECTIONS === */
+        .section {
+            margin-bottom: 3rem;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        .section-badge.red { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+        .section-badge.green { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+        .section-badge.amber { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
+        .section-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+        .section-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: 2fr 3fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        /* === INPUT PANELS === */
+        .input-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+        }
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        .input-group:last-child { margin-bottom: 0; }
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.35rem;
+        }
+        .input-group input[type="number"],
+        .input-group input[type="text"] {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .slider-group input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            outline: none;
+        }
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .slider-group input[type="number"] {
+            width: 70px;
+            text-align: center;
+        }
+        .slider-group .unit {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Collapsible defaults */
+        .defaults-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 0;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .defaults-toggle:hover { color: var(--text-secondary); }
+        .defaults-toggle .arrow {
+            transition: transform 0.2s;
+            font-size: 0.65rem;
+        }
+        .defaults-toggle.open .arrow { transform: rotate(90deg); }
+        .defaults-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .defaults-content.open {
+            max-height: 500px;
+        }
+
+        /* === RESULTS PANELS === */
+        .results-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+        .result-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+        }
+        .result-card-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        /* Waterfall breakdown */
+        .waterfall-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0;
+            font-size: 0.85rem;
+        }
+        .waterfall-row .wf-label {
+            color: var(--text-secondary);
+        }
+        .waterfall-row .wf-value {
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+        .waterfall-row.subtotal {
+            border-top: 1px solid var(--border-color);
+            margin-top: 0.25rem;
+            padding-top: 0.6rem;
+            font-weight: 600;
+        }
+        .waterfall-row.subtotal .wf-label { color: var(--text-primary); }
+        .waterfall-row.total {
+            border-top: 2px solid var(--border-color);
+            margin-top: 0.35rem;
+            padding-top: 0.75rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+        .waterfall-row.total .wf-label { color: var(--text-primary); }
+        .wf-negative { color: var(--accent-red); }
+        .wf-positive { color: var(--accent-green); }
+        .wf-neutral { color: var(--text-secondary); }
+
+        /* Totals grid */
+        .totals-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .total-item {
+            text-align: center;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-sm);
+        }
+        .total-item .total-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            margin-bottom: 0.3rem;
+        }
+        .total-item .total-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Projection table */
+        .projection-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .projection-table th {
+            text-align: left;
+            padding: 0.6rem 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .projection-table td {
+            padding: 0.6rem 0.5rem;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+            border-bottom: 1px solid rgba(51,65,85,0.5);
+        }
+        .projection-table tr:last-child td { border-bottom: none; }
+
+        /* SVG Charts */
+        .chart-container {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        .chart-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Breakeven section */
+        .breakeven-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+        .breakeven-summary .be-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .breakeven-summary .be-item:last-child { border-bottom: none; }
+        .breakeven-summary .be-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .breakeven-summary .be-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 0.15rem;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 2rem 0;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.25rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-family: var(--font);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .btn:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-blue);
+        }
+
+        /* Export buttons */
+        .export-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .btn-primary {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #2563EB;
+            border-color: #2563EB;
+        }
+        .btn-green {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: #fff;
+        }
+        .btn-green:hover {
+            background: #059669;
+            border-color: #059669;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 2rem;
+            max-width: 440px;
+            width: 90%;
+            position: relative;
+        }
+        .modal h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .modal p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.25rem;
+            line-height: 1.5;
+        }
+        .modal .input-group { margin-bottom: 1rem; }
+        .modal .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.35rem;
+        }
+        .modal .input-group input {
+            width: 100%;
+            padding: 0.7rem 0.85rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font);
+            font-size: 0.95rem;
+        }
+        .modal .input-group input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+        .modal-actions .btn { flex: 1; justify-content: center; }
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+        .modal-close:hover { color: var(--text-primary); }
+        .modal-success {
+            text-align: center;
+            padding: 1rem 0;
+        }
+        .modal-success .checkmark {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .modal-success h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--accent-green);
+        }
+        .modal-success p {
+            margin-bottom: 0.75rem;
+        }
+        .modal-success a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .modal-success a:hover { text-decoration: underline; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .section-grid { grid-template-columns: 1fr 1fr; }
+            .breakeven-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .hero-cards { grid-template-columns: 1fr 1fr; }
+            .section-grid { grid-template-columns: 1fr; }
+            .breakeven-grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 1.4rem; }
+            .hero-card .hero-value { font-size: 1.35rem; }
+        }
+        @media (max-width: 480px) {
+            .hero-cards { grid-template-columns: 1fr; }
+            .input-row { grid-template-columns: 1fr; }
+            .totals-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Print */
+        @media print {
+            body { background: #fff; color: #000; }
+            .input-panel, .defaults-toggle, .defaults-content, .footer .btn { display: none !important; }
+            .section-grid { grid-template-columns: 1fr; }
+            .breakeven-grid { grid-template-columns: 1fr; }
+            .hero-card, .result-card, .total-item {
+                background: #f8f8f8;
+                border-color: #ddd;
+            }
+            .hero-card .hero-value, .wf-negative, .wf-positive,
+            .section-badge, .section-title { -webkit-text-fill-color: initial; }
+            .hero-card.red .hero-value { color: #c00; }
+            .hero-card.green .hero-value { color: #080; }
+            .hero-card.blue .hero-value { color: #06c; }
+            .hero-card.amber .hero-value { color: #b80; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>Amazon FBA Launch Calculator</h1>
+        <p>Model your product launch investment and projected business outcomes</p>
+    </div>
+
+    <!-- HERO SUMMARY CARDS -->
+    <div class="hero-cards">
+        <div class="hero-card red">
+            <div class="hero-label">Launch Investment</div>
+            <div class="hero-value" id="hero-investment">-$0</div>
+            <div class="hero-sub">Total launch cost</div>
+        </div>
+        <div class="hero-card green">
+            <div class="hero-label">Monthly Target Profit</div>
+            <div class="hero-value" id="hero-monthly-profit">$0</div>
+            <div class="hero-sub">At steady state</div>
+        </div>
+        <div class="hero-card blue">
+            <div class="hero-label">Year 1 Annual Revenue</div>
+            <div class="hero-value" id="hero-annual-revenue">$0</div>
+            <div class="hero-sub">At target volume</div>
+        </div>
+        <div class="hero-card amber">
+            <div class="hero-label">Breakeven</div>
+            <div class="hero-value" id="hero-breakeven">--</div>
+            <div class="hero-sub">Months to recoup investment</div>
+        </div>
+    </div>
+
+    <!-- ==================== SECTION 1: LAUNCH ==================== -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-badge red">1</div>
+            <div>
+                <div class="section-title">Launch Phase</div>
+                <div class="section-subtitle">Initial investment to drive sales velocity and rankings</div>
+            </div>
+        </div>
+
+        <div class="section-grid">
+            <!-- LAUNCH INPUTS -->
+            <div class="input-panel">
+                <div class="input-group">
+                    <label for="launch-product-name">Product Name</label>
+                    <input type="text" id="launch-product-name" value="New Product">
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="launch-price">Launch Sale Price ($)</label>
+                        <input type="number" id="launch-price" value="19.99" min="0" step="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label for="launch-units">Units to Sell</label>
+                        <input type="number" id="launch-units" value="3000" min="0" step="100">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="launch-cogs">COGs per Unit ($)</label>
+                        <input type="number" id="launch-cogs" value="4.60" min="0" step="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label for="launch-inbound">Inbound Shipping / Unit ($)</label>
+                        <input type="number" id="launch-inbound" value="0.68" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Marketing Spend % (TACoS)</label>
+                    <div class="slider-group">
+                        <input type="range" id="launch-marketing-slider" min="0" max="100" value="80">
+                        <input type="number" id="launch-marketing-pct" value="80" min="0" max="100" step="1">
+                        <span class="unit">%</span>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="launch-agency-pct">Agency Fees %</label>
+                        <input type="number" id="launch-agency-pct" value="0" min="0" max="100" step="0.5">
+                    </div>
+                    <div class="input-group">
+                        <label for="launch-returns-pct">Returns / Lost / Damaged %</label>
+                        <input type="number" id="launch-returns-pct" value="2" min="0" max="100" step="0.1">
+                    </div>
+                </div>
+
+                <button class="defaults-toggle" id="launch-defaults-toggle" type="button">
+                    <span class="arrow">&#9654;</span> Amazon Fee Defaults
+                </button>
+                <div class="defaults-content" id="launch-defaults-content">
+                    <div class="input-row" style="margin-top:0.75rem">
+                        <div class="input-group">
+                            <label for="launch-referral-pct">Referral Fee %</label>
+                            <input type="number" id="launch-referral-pct" value="15" min="0" max="100" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="launch-fba-fee">FBA Fee / Unit ($)</label>
+                            <input type="number" id="launch-fba-fee" value="3.90" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="launch-storage-fee">Storage Fee / Unit ($)</label>
+                            <input type="number" id="launch-storage-fee" value="0.02" min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label for="launch-inbound-placement">Inbound Placement Fee ($)</label>
+                            <input type="number" id="launch-inbound-placement" value="0.34" min="0" step="0.01">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAUNCH RESULTS -->
+            <div class="results-panel">
+                <div class="result-card">
+                    <div class="result-card-title">Per-Unit Breakdown</div>
+                    <div id="launch-waterfall"></div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-title">Launch Totals</div>
+                    <div class="totals-grid" id="launch-totals"></div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-title">Cost Breakdown</div>
+                    <div class="chart-container" id="launch-chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SECTION 2: TARGET ==================== -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-badge green">2</div>
+            <div>
+                <div class="section-title">Target Business Model</div>
+                <div class="section-subtitle">Projected monthly performance at steady state</div>
+            </div>
+        </div>
+
+        <div class="section-grid">
+            <!-- TARGET INPUTS -->
+            <div class="input-panel">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="target-price">Target Sale Price ($)</label>
+                        <input type="number" id="target-price" value="26.00" min="0" step="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label for="target-units">Monthly Units</label>
+                        <input type="number" id="target-units" value="2000" min="0" step="100">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Marketing Spend % (TACoS)</label>
+                    <div class="slider-group">
+                        <input type="range" id="target-marketing-slider" min="0" max="100" value="15">
+                        <input type="number" id="target-marketing-pct" value="15" min="0" max="100" step="1">
+                        <span class="unit">%</span>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="target-agency-pct">Agency Fees %</label>
+                        <input type="number" id="target-agency-pct" value="7" min="0" max="100" step="0.5">
+                    </div>
+                    <div class="input-group">
+                        <label for="target-cogs">COGs per Unit ($)</label>
+                        <input type="number" id="target-cogs" value="4.60" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="target-growth-rate">Annual Growth Rate %</label>
+                    <div class="slider-group">
+                        <input type="range" id="target-growth-slider" min="0" max="100" value="30">
+                        <input type="number" id="target-growth-rate" value="30" min="0" max="200" step="1">
+                        <span class="unit">%</span>
+                    </div>
+                </div>
+
+                <button class="defaults-toggle" id="target-defaults-toggle" type="button">
+                    <span class="arrow">&#9654;</span> Amazon Fee Defaults
+                </button>
+                <div class="defaults-content" id="target-defaults-content">
+                    <div class="input-row" style="margin-top:0.75rem">
+                        <div class="input-group">
+                            <label for="target-referral-pct">Referral Fee %</label>
+                            <input type="number" id="target-referral-pct" value="15" min="0" max="100" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="target-fba-fee">FBA Fee / Unit ($)</label>
+                            <input type="number" id="target-fba-fee" value="3.90" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="target-storage-fee">Storage Fee / Unit ($)</label>
+                            <input type="number" id="target-storage-fee" value="0.02" min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label for="target-inbound-placement">Inbound Placement Fee ($)</label>
+                            <input type="number" id="target-inbound-placement" value="0.34" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="target-returns-pct">Returns / Lost / Damaged %</label>
+                            <input type="number" id="target-returns-pct" value="2" min="0" max="100" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="target-inbound">Inbound Shipping / Unit ($)</label>
+                            <input type="number" id="target-inbound" value="0.68" min="0" step="0.01">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARGET RESULTS -->
+            <div class="results-panel">
+                <div class="result-card">
+                    <div class="result-card-title">Per-Unit Breakdown</div>
+                    <div id="target-waterfall"></div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-title">Monthly &amp; Annual Performance</div>
+                    <div class="totals-grid" id="target-totals"></div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-title">3-Year Projection</div>
+                    <table class="projection-table" id="target-projection-table">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Mo. Units</th>
+                                <th>Mo. Revenue</th>
+                                <th>Mo. Profit</th>
+                                <th>Margin</th>
+                                <th>Annual Revenue</th>
+                                <th>Annual Profit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="target-projection-body"></tbody>
+                    </table>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-title">3-Year Revenue vs Profit</div>
+                    <div class="chart-container" id="target-chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SECTION 3: BREAKEVEN ==================== -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-badge amber">3</div>
+            <div>
+                <div class="section-title">Breakeven Analysis</div>
+                <div class="section-subtitle">How long to recoup your launch investment</div>
+            </div>
+        </div>
+
+        <div class="breakeven-grid">
+            <div class="result-card breakeven-summary" id="breakeven-summary"></div>
+            <div class="result-card">
+                <div class="result-card-title">Cumulative Profit &amp; Loss</div>
+                <div class="chart-container" id="breakeven-chart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <p>Amazon FBA Launch Calculator</p>
+        <div class="export-buttons">
+            <button class="btn" onclick="window.print()">&#128424; Print</button>
+            <button class="btn btn-primary" onclick="exportToExcel()">&#128196; Export to Excel</button>
+            <button class="btn btn-green" onclick="openSheetsModal()">&#128206; Get Google Sheets Version</button>
+        </div>
+    </div>
+
+    <!-- GOOGLE SHEETS MODAL -->
+    <div class="modal-overlay" id="sheets-modal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeSheetsModal()">&times;</button>
+            <div id="sheets-form-view">
+                <h2>Get Your Google Sheets Version</h2>
+                <p>Enter your email and we'll send you an editable Google Sheets template with all your current numbers and live formulas.</p>
+                <div class="input-group">
+                    <label for="lead-email">Email Address</label>
+                    <input type="email" id="lead-email" placeholder="john@example.com">
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeSheetsModal()">Cancel</button>
+                    <button class="btn btn-green" id="sheets-submit-btn" onclick="submitSheetsForm()">Send Me the Sheet</button>
+                </div>
+            </div>
+            <div id="sheets-success-view" style="display:none">
+                <div class="modal-success">
+                    <div class="checkmark">&#10003;</div>
+                    <h3>Your spreadsheet is ready!</h3>
+                    <p>Click below to get your own editable copy in Google Sheets with all formulas and calculations built in.</p>
+                    <p><a id="sheets-template-link" href="#" target="_blank" style="font-size:1.05rem;">Open My Google Sheets Template &rarr;</a></p>
+                    <div style="margin-top:1rem">
+                        <button class="btn" onclick="closeSheetsModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    // === HELPERS ===
+    const el = id => document.getElementById(id);
+    const num = id => { const v = parseFloat(el(id).value); return isNaN(v) ? 0 : v; };
+
+    const fmtCurrency = (v, compact) => {
+        if (compact && Math.abs(v) >= 1000000) {
+            return (v < 0 ? '-' : '') + '$' + (Math.abs(v) / 1000000).toFixed(2) + 'M';
+        }
+        if (compact && Math.abs(v) >= 10000) {
+            return (v < 0 ? '-' : '') + '$' + (Math.abs(v) / 1000).toFixed(0) + 'K';
+        }
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency', currency: 'USD',
+            minimumFractionDigits: v % 1 === 0 && Math.abs(v) >= 100 ? 0 : 2,
+            maximumFractionDigits: 2
+        }).format(v);
+    };
+
+    const fmtPct = v => (v * 100).toFixed(1) + '%';
+    const fmtUnits = v => new Intl.NumberFormat('en-US').format(Math.round(v));
+    const colorClass = v => v < -0.005 ? 'wf-negative' : v > 0.005 ? 'wf-positive' : 'wf-neutral';
+
+    // === LINKED FIELD SYNC ===
+    const manuallyEdited = new Set();
+    const linkedFields = [
+        ['launch-referral-pct', 'target-referral-pct'],
+        ['launch-fba-fee', 'target-fba-fee'],
+        ['launch-storage-fee', 'target-storage-fee'],
+        ['launch-inbound-placement', 'target-inbound-placement'],
+        ['launch-returns-pct', 'target-returns-pct'],
+        ['launch-inbound', 'target-inbound'],
+    ];
+
+    linkedFields.forEach(([src, tgt]) => {
+        el(tgt).addEventListener('input', () => manuallyEdited.add(tgt));
+        el(src).addEventListener('input', () => {
+            if (!manuallyEdited.has(tgt)) {
+                el(tgt).value = el(src).value;
+            }
+        });
+    });
+
+    // === SLIDER SYNC ===
+    function syncSlider(sliderId, numberId) {
+        const slider = el(sliderId);
+        const numInput = el(numberId);
+        slider.addEventListener('input', () => { numInput.value = slider.value; calculate(); });
+        numInput.addEventListener('input', () => { slider.value = numInput.value; calculate(); });
+    }
+    syncSlider('launch-marketing-slider', 'launch-marketing-pct');
+    syncSlider('target-marketing-slider', 'target-marketing-pct');
+    syncSlider('target-growth-slider', 'target-growth-rate');
+
+    // === COLLAPSIBLE TOGGLES ===
+    function setupToggle(toggleId, contentId) {
+        const toggle = el(toggleId);
+        const content = el(contentId);
+        toggle.addEventListener('click', () => {
+            toggle.classList.toggle('open');
+            content.classList.toggle('open');
+        });
+    }
+    setupToggle('launch-defaults-toggle', 'launch-defaults-content');
+    setupToggle('target-defaults-toggle', 'target-defaults-content');
+
+    // === WATERFALL RENDERER ===
+    function renderWaterfall(containerId, rows) {
+        let html = '';
+        rows.forEach(r => {
+            const cls = r.type === 'total' ? 'waterfall-row total' :
+                        r.type === 'subtotal' ? 'waterfall-row subtotal' : 'waterfall-row';
+            const valCls = r.type === 'total' || r.type === 'subtotal' ? colorClass(r.value) : (r.deduction ? 'wf-negative' : 'wf-neutral');
+            html += `<div class="${cls}">
+                <span class="wf-label">${r.label}</span>
+                <span class="wf-value ${valCls}">${r.deduction && r.value !== 0 ? '-' : ''}${fmtCurrency(Math.abs(r.value))}</span>
+            </div>`;
+        });
+        el(containerId).innerHTML = html;
+    }
+
+    // === TOTALS RENDERER ===
+    function renderTotals(containerId, items) {
+        let html = '';
+        items.forEach(it => {
+            html += `<div class="total-item">
+                <div class="total-label">${it.label}</div>
+                <div class="total-value ${colorClass(it.value)}">${it.fmt === 'pct' ? fmtPct(it.value) : fmtCurrency(it.value, it.compact)}</div>
+            </div>`;
+        });
+        el(containerId).innerHTML = html;
+    }
+
+    // === BAR CHART (Horizontal stacked) ===
+    function renderLaunchChart(containerId, segments) {
+        const total = segments.reduce((s, seg) => s + Math.abs(seg.value), 0);
+        if (total === 0) { el(containerId).innerHTML = ''; return; }
+
+        const W = 500, H = 120, PAD = 10, BAR_H = 30, BAR_Y = 20;
+        const barW = W - PAD * 2;
+        let html = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+        let x = PAD;
+        segments.forEach(seg => {
+            const w = (Math.abs(seg.value) / total) * barW;
+            if (w < 1) return;
+            html += `<rect x="${x}" y="${BAR_Y}" width="${w}" height="${BAR_H}" rx="4" fill="${seg.color}" opacity="0.85"/>`;
+            if (w > 40) {
+                html += `<text x="${x + w/2}" y="${BAR_Y + BAR_H + 16}" text-anchor="middle" fill="${seg.color}" font-size="9" font-family="Inter,sans-serif" font-weight="600">${seg.label}</text>`;
+                html += `<text x="${x + w/2}" y="${BAR_Y + BAR_H + 28}" text-anchor="middle" fill="#94A3B8" font-size="8" font-family="Inter,sans-serif">${fmtCurrency(Math.abs(seg.value), true)}</text>`;
+            }
+            x += w;
+        });
+
+        html += '</svg>';
+        el(containerId).innerHTML = html;
+    }
+
+    // === GROUPED BAR CHART (3-Year Projection) ===
+    function renderProjectionChart(containerId, years) {
+        const W = 500, H = 200, PAD_L = 60, PAD_R = 20, PAD_T = 20, PAD_B = 35;
+        const chartW = W - PAD_L - PAD_R;
+        const chartH = H - PAD_T - PAD_B;
+
+        const maxVal = Math.max(...years.map(y => y.annualRevenue), 1);
+        const scaleY = v => PAD_T + chartH - (v / maxVal) * chartH;
+
+        const groupW = chartW / years.length;
+        const barW = groupW * 0.3;
+        const gap = groupW * 0.05;
+
+        let html = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+        // Grid lines
+        for (let i = 0; i <= 4; i++) {
+            const val = (maxVal / 4) * i;
+            const y = scaleY(val);
+            html += `<line x1="${PAD_L}" y1="${y}" x2="${W - PAD_R}" y2="${y}" stroke="#334155" stroke-width="1"/>`;
+            html += `<text x="${PAD_L - 8}" y="${y + 4}" text-anchor="end" fill="#64748B" font-size="9" font-family="Inter,sans-serif">${fmtCurrency(val, true)}</text>`;
+        }
+
+        years.forEach((yr, i) => {
+            const x = PAD_L + i * groupW + groupW * 0.15;
+
+            // Revenue bar
+            const revH = (yr.annualRevenue / maxVal) * chartH;
+            html += `<rect x="${x}" y="${scaleY(yr.annualRevenue)}" width="${barW}" height="${revH}" rx="3" fill="#3B82F6" opacity="0.8"/>`;
+
+            // Profit bar
+            const profH = Math.max((yr.annualProfit / maxVal) * chartH, 0);
+            html += `<rect x="${x + barW + gap}" y="${scaleY(Math.max(yr.annualProfit, 0))}" width="${barW}" height="${profH}" rx="3" fill="#10B981" opacity="0.8"/>`;
+
+            // Year label
+            html += `<text x="${x + barW + gap/2}" y="${H - 10}" text-anchor="middle" fill="#94A3B8" font-size="11" font-family="Inter,sans-serif" font-weight="600">Year ${yr.year}</text>`;
+        });
+
+        // Legend
+        html += `<rect x="${PAD_L}" y="${H - 12}" width="10" height="10" rx="2" fill="#3B82F6" opacity="0.8"/>`;
+        html += `<text x="${PAD_L + 14}" y="${H - 3}" fill="#94A3B8" font-size="9" font-family="Inter,sans-serif">Revenue</text>`;
+        html += `<rect x="${PAD_L + 70}" y="${H - 12}" width="10" height="10" rx="2" fill="#10B981" opacity="0.8"/>`;
+        html += `<text x="${PAD_L + 84}" y="${H - 3}" fill="#94A3B8" font-size="9" font-family="Inter,sans-serif">Profit</text>`;
+
+        html += '</svg>';
+        el(containerId).innerHTML = html;
+    }
+
+    // === BREAKEVEN LINE CHART ===
+    function renderBreakevenChart(containerId, timeline, breakevenMonths) {
+        if (!timeline.length) { el(containerId).innerHTML = ''; return; }
+
+        const W = 500, H = 220, PAD_L = 65, PAD_R = 20, PAD_T = 25, PAD_B = 35;
+        const chartW = W - PAD_L - PAD_R;
+        const chartH = H - PAD_T - PAD_B;
+
+        const vals = timeline.map(t => t.cumulative);
+        const minVal = Math.min(...vals);
+        const maxVal = Math.max(...vals);
+        const range = maxVal - minVal || 1;
+
+        const scaleX = i => PAD_L + (i / (timeline.length - 1)) * chartW;
+        const scaleY = v => PAD_T + chartH - ((v - minVal) / range) * chartH;
+        const zeroY = scaleY(0);
+
+        let html = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+        // Zero line
+        if (minVal < 0 && maxVal > 0) {
+            html += `<line x1="${PAD_L}" y1="${zeroY}" x2="${W - PAD_R}" y2="${zeroY}" stroke="#64748B" stroke-width="1" stroke-dasharray="4,4"/>`;
+            html += `<text x="${PAD_L - 8}" y="${zeroY + 4}" text-anchor="end" fill="#64748B" font-size="9" font-family="Inter,sans-serif">$0</text>`;
+        }
+
+        // Red area (below zero)
+        let areaPath = `M ${scaleX(0)} ${zeroY}`;
+        timeline.forEach((t, i) => {
+            const y = Math.max(scaleY(t.cumulative), scaleY(0));
+            areaPath += ` L ${scaleX(i)} ${y === scaleY(0) ? zeroY : scaleY(t.cumulative)}`;
+        });
+        // For the red fill below zero
+        let redPath = `M ${scaleX(0)} ${zeroY}`;
+        timeline.forEach((t, i) => {
+            const y = scaleY(Math.min(t.cumulative, 0));
+            redPath += ` L ${scaleX(i)} ${y}`;
+        });
+        redPath += ` L ${scaleX(timeline.length - 1)} ${zeroY} Z`;
+        html += `<path d="${redPath}" fill="#EF4444" opacity="0.1"/>`;
+
+        // Green fill above zero
+        let greenPath = `M ${scaleX(0)} ${zeroY}`;
+        timeline.forEach((t, i) => {
+            const y = scaleY(Math.max(t.cumulative, 0));
+            greenPath += ` L ${scaleX(i)} ${y}`;
+        });
+        greenPath += ` L ${scaleX(timeline.length - 1)} ${zeroY} Z`;
+        html += `<path d="${greenPath}" fill="#10B981" opacity="0.1"/>`;
+
+        // Line
+        let linePath = '';
+        timeline.forEach((t, i) => {
+            const cmd = i === 0 ? 'M' : 'L';
+            linePath += `${cmd} ${scaleX(i)} ${scaleY(t.cumulative)} `;
+        });
+        html += `<path d="${linePath}" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+        // Data points
+        timeline.forEach((t, i) => {
+            const x = scaleX(i);
+            const y = scaleY(t.cumulative);
+            const col = t.cumulative < 0 ? '#EF4444' : '#10B981';
+            html += `<circle cx="${x}" cy="${y}" r="4" fill="${col}" stroke="var(--bg-secondary)" stroke-width="2"/>`;
+
+            // Month labels on x-axis
+            html += `<text x="${x}" y="${H - 10}" text-anchor="middle" fill="#64748B" font-size="9" font-family="Inter,sans-serif">${i === 0 ? 'Launch' : 'Mo ' + i}</text>`;
+
+            // Value labels
+            if (i === 0 || i === timeline.length - 1 || t.isBreakeven) {
+                html += `<text x="${x}" y="${y - 10}" text-anchor="middle" fill="${col}" font-size="9" font-family="Inter,sans-serif" font-weight="600">${fmtCurrency(t.cumulative, true)}</text>`;
+            }
+        });
+
+        // Breakeven marker
+        if (breakevenMonths > 0 && breakevenMonths < timeline.length && isFinite(breakevenMonths)) {
+            const bx = PAD_L + (breakevenMonths / (timeline.length - 1)) * chartW;
+            html += `<line x1="${bx}" y1="${PAD_T}" x2="${bx}" y2="${PAD_T + chartH}" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+            html += `<text x="${bx}" y="${PAD_T - 5}" text-anchor="middle" fill="#F59E0B" font-size="9" font-family="Inter,sans-serif" font-weight="700">Breakeven</text>`;
+        }
+
+        html += '</svg>';
+        el(containerId).innerHTML = html;
+    }
+
+    // === MAIN CALCULATION ===
+    function calculate() {
+        // Gather launch inputs
+        const lPrice = num('launch-price');
+        const lUnits = num('launch-units');
+        const lCogs = num('launch-cogs');
+        const lInbound = num('launch-inbound');
+        const lMktPct = num('launch-marketing-pct') / 100;
+        const lAgencyPct = num('launch-agency-pct') / 100;
+        const lReturnsPct = num('launch-returns-pct') / 100;
+        const lReferralPct = num('launch-referral-pct') / 100;
+        const lFbaFee = num('launch-fba-fee');
+        const lStorageFee = num('launch-storage-fee');
+        const lInboundPlacement = num('launch-inbound-placement');
+
+        // Gather target inputs
+        const tPrice = num('target-price');
+        const tUnits = num('target-units');
+        const tMktPct = num('target-marketing-pct') / 100;
+        const tAgencyPct = num('target-agency-pct') / 100;
+        const tCogs = num('target-cogs');
+        const tGrowthRate = num('target-growth-rate') / 100;
+        const tReferralPct = num('target-referral-pct') / 100;
+        const tFbaFee = num('target-fba-fee');
+        const tStorageFee = num('target-storage-fee');
+        const tInboundPlacement = num('target-inbound-placement');
+        const tReturnsPct = num('target-returns-pct') / 100;
+        const tInbound = num('target-inbound');
+
+        // ======= LAUNCH CALCULATIONS =======
+        const lReferral = lPrice * lReferralPct;
+        const lReturnsCost = lPrice * lReturnsPct;
+        const lNetPerSale = lPrice - lReferral - lStorageFee - lFbaFee - lInboundPlacement - lReturnsCost;
+        const lAmazonMargin = lPrice > 0 ? lNetPerSale / lPrice : 0;
+
+        const lMktPerUnit = lPrice * lMktPct;
+        const lAgencyPerUnit = lPrice * lAgencyPct;
+        const lProfitPerUnit = lNetPerSale - lMktPerUnit - lAgencyPerUnit - lCogs;
+
+        const lRevenue = lPrice * lUnits;
+        const lAdvertising = lRevenue * lMktPct;
+        const lAgencyTotal = lRevenue * lAgencyPct;
+        const lCogsTotal = (lCogs + lInbound) * lUnits * (1 + lReturnsPct);
+        const lProfit = lProfitPerUnit * lUnits;
+        const lProfitMargin = lRevenue > 0 ? lProfit / lRevenue : 0;
+        const lCashFlow = (lNetPerSale * lUnits) - lAdvertising - lAgencyTotal;
+
+        // ======= TARGET CALCULATIONS =======
+        const tReferral = tPrice * tReferralPct;
+        const tReturnsCost = tPrice * tReturnsPct;
+        const tNetPerSale = tPrice - tReferral - tStorageFee - tFbaFee - tInboundPlacement - tReturnsCost;
+        const tAmazonMargin = tPrice > 0 ? tNetPerSale / tPrice : 0;
+
+        const tMktPerUnit = tPrice * tMktPct;
+        const tAgencyPerUnit = tPrice * tAgencyPct;
+        const tProfitPerUnit = tNetPerSale - tMktPerUnit - tAgencyPerUnit - tCogs;
+
+        const tMonthlyRev = tPrice * tUnits;
+        const tMonthlyProfit = tProfitPerUnit * tUnits;
+        const tMonthlyAds = tMonthlyRev * tMktPct;
+        const tMonthlyAgency = tMonthlyRev * tAgencyPct;
+        const tMonthlyCogs = (tCogs + tInbound) * tUnits * (1 + tReturnsPct);
+        const tAnnualRev = tMonthlyRev * 12;
+        const tAnnualProfit = tMonthlyProfit * 12;
+        const tProfitMargin = tPrice > 0 ? tProfitPerUnit / tPrice : 0;
+
+        // ======= 3-YEAR PROJECTION =======
+        const years = [];
+        let prevUnits = tUnits;
+        for (let y = 1; y <= 3; y++) {
+            const units = y === 1 ? tUnits : Math.round(prevUnits * (1 + tGrowthRate));
+            const rev = units * tPrice;
+            const profit = tProfitPerUnit * units;
+            years.push({
+                year: y, units, monthlyRevenue: rev, monthlyProfit: profit,
+                profitMargin: tProfitMargin,
+                annualRevenue: rev * 12, annualProfit: profit * 12
+            });
+            prevUnits = units;
+        }
+
+        // ======= BREAKEVEN =======
+        const breakevenMonths = tMonthlyProfit > 0 ? Math.abs(lProfit) / tMonthlyProfit : Infinity;
+        const breakevenCeil = Math.ceil(breakevenMonths);
+        const timelineLen = isFinite(breakevenMonths) ? Math.max(breakevenCeil + 2, 4) : 6;
+        const timeline = [{ month: 0, cumulative: lProfit, isBreakeven: false }];
+        let cum = lProfit;
+        for (let m = 1; m <= timelineLen; m++) {
+            const prev = cum;
+            cum += tMonthlyProfit;
+            timeline.push({ month: m, cumulative: cum, isBreakeven: prev < 0 && cum >= 0 });
+        }
+
+        // ======= RENDER HERO CARDS =======
+        el('hero-investment').textContent = fmtCurrency(lProfit, true);
+        el('hero-monthly-profit').textContent = fmtCurrency(tMonthlyProfit, true);
+        el('hero-annual-revenue').textContent = fmtCurrency(tAnnualRev, true);
+        el('hero-breakeven').textContent = isFinite(breakevenMonths) ? breakevenMonths.toFixed(1) + ' mo' : 'N/A';
+
+        // ======= RENDER LAUNCH WATERFALL =======
+        renderWaterfall('launch-waterfall', [
+            { label: 'Sale Price', value: lPrice },
+            { label: 'Referral Fee (' + fmtPct(lReferralPct) + ')', value: lReferral, deduction: true },
+            { label: 'FBA Fee', value: lFbaFee, deduction: true },
+            { label: 'Storage Fee', value: lStorageFee, deduction: true },
+            { label: 'Inbound Placement', value: lInboundPlacement, deduction: true },
+            { label: 'Returns (' + fmtPct(lReturnsPct) + ')', value: lReturnsCost, deduction: true },
+            { label: 'Net Per Sale', value: lNetPerSale, type: 'subtotal' },
+            { label: 'Marketing (' + fmtPct(lMktPct) + ')', value: lMktPerUnit, deduction: true },
+            { label: 'Agency (' + fmtPct(lAgencyPct) + ')', value: lAgencyPerUnit, deduction: true },
+            { label: 'COGs', value: lCogs, deduction: true },
+            { label: 'Profit Per Unit', value: lProfitPerUnit, type: 'total' },
+        ]);
+
+        // ======= RENDER LAUNCH TOTALS =======
+        renderTotals('launch-totals', [
+            { label: 'Launch Revenue', value: lRevenue, compact: true },
+            { label: 'Advertising Spend', value: -lAdvertising, compact: true },
+            { label: 'Agency Fees', value: -lAgencyTotal, compact: true },
+            { label: 'Total COGs', value: -lCogsTotal, compact: true },
+            { label: 'Launch Profit (Loss)', value: lProfit, compact: true },
+            { label: 'Profit Margin', value: lProfitMargin, fmt: 'pct' },
+            { label: 'Cash Flow (Amazon)', value: lCashFlow, compact: true },
+            { label: 'Amazon Margin', value: lAmazonMargin, fmt: 'pct' },
+        ]);
+
+        // ======= RENDER LAUNCH CHART =======
+        renderLaunchChart('launch-chart', [
+            { label: 'Amazon Fees', value: (lReferral + lFbaFee + lStorageFee + lInboundPlacement + lReturnsCost) * lUnits, color: '#F97316' },
+            { label: 'Marketing', value: lAdvertising, color: '#8B5CF6' },
+            { label: 'Agency', value: lAgencyTotal, color: '#6366F1' },
+            { label: 'COGs', value: lCogsTotal, color: '#6B7280' },
+        ]);
+
+        // ======= RENDER TARGET WATERFALL =======
+        renderWaterfall('target-waterfall', [
+            { label: 'Sale Price', value: tPrice },
+            { label: 'Referral Fee (' + fmtPct(tReferralPct) + ')', value: tReferral, deduction: true },
+            { label: 'FBA Fee', value: tFbaFee, deduction: true },
+            { label: 'Storage Fee', value: tStorageFee, deduction: true },
+            { label: 'Inbound Placement', value: tInboundPlacement, deduction: true },
+            { label: 'Returns (' + fmtPct(tReturnsPct) + ')', value: tReturnsCost, deduction: true },
+            { label: 'Net Per Sale', value: tNetPerSale, type: 'subtotal' },
+            { label: 'Marketing (' + fmtPct(tMktPct) + ')', value: tMktPerUnit, deduction: true },
+            { label: 'Agency (' + fmtPct(tAgencyPct) + ')', value: tAgencyPerUnit, deduction: true },
+            { label: 'COGs', value: tCogs, deduction: true },
+            { label: 'Profit Per Unit', value: tProfitPerUnit, type: 'total' },
+        ]);
+
+        // ======= RENDER TARGET TOTALS =======
+        renderTotals('target-totals', [
+            { label: 'Monthly Revenue', value: tMonthlyRev, compact: true },
+            { label: 'Monthly Profit', value: tMonthlyProfit, compact: true },
+            { label: 'Profit Margin', value: tProfitMargin, fmt: 'pct' },
+            { label: 'Monthly Advertising', value: -tMonthlyAds, compact: true },
+            { label: 'Annual Revenue', value: tAnnualRev, compact: true },
+            { label: 'Annual Profit', value: tAnnualProfit, compact: true },
+        ]);
+
+        // ======= RENDER 3-YEAR PROJECTION TABLE =======
+        let projHtml = '';
+        years.forEach(yr => {
+            projHtml += `<tr>
+                <td style="font-weight:700">Year ${yr.year}</td>
+                <td>${fmtUnits(yr.units)}</td>
+                <td>${fmtCurrency(yr.monthlyRevenue, true)}</td>
+                <td class="${colorClass(yr.monthlyProfit)}">${fmtCurrency(yr.monthlyProfit, true)}</td>
+                <td class="${colorClass(yr.profitMargin)}">${fmtPct(yr.profitMargin)}</td>
+                <td>${fmtCurrency(yr.annualRevenue, true)}</td>
+                <td class="${colorClass(yr.annualProfit)}" style="font-weight:700">${fmtCurrency(yr.annualProfit, true)}</td>
+            </tr>`;
+        });
+        el('target-projection-body').innerHTML = projHtml;
+
+        // ======= RENDER PROJECTION CHART =======
+        renderProjectionChart('target-chart', years);
+
+        // ======= RENDER BREAKEVEN =======
+        el('breakeven-summary').innerHTML = `
+            <div class="result-card-title">Summary</div>
+            <div class="be-item">
+                <div class="be-label">Launch Investment</div>
+                <div class="be-value wf-negative">${fmtCurrency(lProfit)}</div>
+            </div>
+            <div class="be-item">
+                <div class="be-label">Monthly Target Profit</div>
+                <div class="be-value wf-positive">${fmtCurrency(tMonthlyProfit)}</div>
+            </div>
+            <div class="be-item">
+                <div class="be-label">Months to Breakeven</div>
+                <div class="be-value" style="color:var(--accent-amber)">${isFinite(breakevenMonths) ? breakevenMonths.toFixed(1) + ' months' : 'N/A — target profit is not positive'}</div>
+            </div>
+            <div class="be-item">
+                <div class="be-label">ROI (Year 1)</div>
+                <div class="be-value ${colorClass(lProfit !== 0 ? tAnnualProfit / Math.abs(lProfit) : 0)}">${lProfit !== 0 ? ((tAnnualProfit / Math.abs(lProfit)) * 100).toFixed(0) + '%' : 'N/A'}</div>
+            </div>
+        `;
+
+        renderBreakevenChart('breakeven-chart', timeline, breakevenMonths);
+    }
+
+    // === EXCEL EXPORT ===
+    window.exportToExcel = function() {
+        const wb = XLSX.utils.book_new();
+        const productName = el('launch-product-name').value || 'Product';
+
+        // --- LAUNCH SHEET ---
+        const launchData = [
+            [productName + ' — Launch Phase'],
+            [],
+            ['INPUTS', '', 'PER-UNIT BREAKDOWN'],
+            ['Launch Sale Price', num('launch-price'), 'Sale Price', {t:'n', f:'B4'}],
+            ['Launch Units', num('launch-units'), 'Referral Fee (' + num('launch-referral-pct') + '%)', {t:'n', f:'B4*B10/100'}],
+            ['COGs per Unit', num('launch-cogs'), 'FBA Fee', {t:'n', f:'B11'}],
+            ['Inbound Shipping / Unit', num('launch-inbound'), 'Storage Fee', {t:'n', f:'B12'}],
+            ['Marketing %', num('launch-marketing-pct')/100, 'Inbound Placement Fee', {t:'n', f:'B13'}],
+            ['Agency %', num('launch-agency-pct')/100, 'Returns Cost', {t:'n', f:'B4*B14/100'}],
+            ['Referral Fee %', num('launch-referral-pct'), 'Net Per Sale', {t:'n', f:'D4-D5-D6-D7-D8-D9'}],
+            ['FBA Fee / Unit', num('launch-fba-fee'), 'Marketing / Unit', {t:'n', f:'B4*B8'}],
+            ['Storage Fee / Unit', num('launch-storage-fee'), 'Agency / Unit', {t:'n', f:'B4*B9'}],
+            ['Inbound Placement Fee', num('launch-inbound-placement'), 'Profit Per Unit', {t:'n', f:'D10-D11-D12-B6'}],
+            ['Returns %', num('launch-returns-pct')],
+            [],
+            ['LAUNCH TOTALS'],
+            ['Revenue', {t:'n', f:'B4*B5'}],
+            ['Advertising Spend', {t:'n', f:'B17*B8'}],
+            ['Agency Fees', {t:'n', f:'B17*B9'}],
+            ['Total COGs', {t:'n', f:'(B6+B7)*B5*(1+B14/100)'}],
+            ['Launch Profit (Loss)', {t:'n', f:'D13*B5'}],
+            ['Profit Margin', {t:'n', f:'B21/B17'}],
+            ['Cash Flow (Amazon)', {t:'n', f:'D10*B5-B18-B19'}],
+            ['Amazon Margin', {t:'n', f:'D10/B4'}],
+        ];
+
+        const wsLaunch = XLSX.utils.aoa_to_sheet(launchData);
+
+        // Set column widths
+        wsLaunch['!cols'] = [{wch:22},{wch:14},{wch:22},{wch:14}];
+
+        // Format percentages
+        const pctCells = ['B8','B9','B22','B24'];
+        pctCells.forEach(ref => { if(wsLaunch[ref]) wsLaunch[ref].z = '0.0%'; });
+        // Format currency
+        ['B4','B6','B7','B11','B12','B13','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13',
+         'B17','B18','B19','B20','B21','B23'].forEach(ref => {
+            if(wsLaunch[ref]) wsLaunch[ref].z = '$#,##0.00';
+        });
+
+        XLSX.utils.book_append_sheet(wb, wsLaunch, 'Launch');
+
+        // --- TARGET SHEET ---
+        const targetData = [
+            [productName + ' — Target Business Model'],
+            [],
+            ['INPUTS', '', 'PER-UNIT BREAKDOWN'],
+            ['Target Sale Price', num('target-price'), 'Sale Price', {t:'n', f:'B4'}],
+            ['Monthly Units', num('target-units'), 'Referral Fee (' + num('target-referral-pct') + '%)', {t:'n', f:'B4*B10/100'}],
+            ['COGs per Unit', num('target-cogs'), 'FBA Fee', {t:'n', f:'B11'}],
+            ['Inbound Shipping / Unit', num('target-inbound'), 'Storage Fee', {t:'n', f:'B12'}],
+            ['Marketing %', num('target-marketing-pct')/100, 'Inbound Placement Fee', {t:'n', f:'B13'}],
+            ['Agency %', num('target-agency-pct')/100, 'Returns Cost', {t:'n', f:'B4*B14/100'}],
+            ['Referral Fee %', num('target-referral-pct'), 'Net Per Sale', {t:'n', f:'D4-D5-D6-D7-D8-D9'}],
+            ['FBA Fee / Unit', num('target-fba-fee'), 'Marketing / Unit', {t:'n', f:'B4*B8'}],
+            ['Storage Fee / Unit', num('target-storage-fee'), 'Agency / Unit', {t:'n', f:'B4*B9'}],
+            ['Inbound Placement Fee', num('target-inbound-placement'), 'Profit Per Unit', {t:'n', f:'D10-D11-D12-B6'}],
+            ['Returns %', num('target-returns-pct')],
+            ['Growth Rate %', num('target-growth-rate')/100],
+            [],
+            ['MONTHLY & ANNUAL PERFORMANCE'],
+            ['Monthly Revenue', {t:'n', f:'B4*B5'}],
+            ['Monthly Profit', {t:'n', f:'D13*B5'}],
+            ['Profit Margin', {t:'n', f:'B19/B18'}],
+            ['Monthly Advertising', {t:'n', f:'B18*B8'}],
+            ['Monthly Agency', {t:'n', f:'B18*B9'}],
+            ['Monthly COGs', {t:'n', f:'(B6+B7)*B5*(1+B14/100)'}],
+            ['Annual Revenue', {t:'n', f:'B18*12'}],
+            ['Annual Profit', {t:'n', f:'B19*12'}],
+            [],
+            ['3-YEAR PROJECTION'],
+            ['', 'Monthly Units', 'Monthly Revenue', 'Monthly Profit', 'Margin', 'Annual Revenue', 'Annual Profit'],
+            ['Year 1', {t:'n', f:'B5'}, {t:'n', f:'C28*B4'}, {t:'n', f:'C28*D13'}, {t:'n', f:'D28/C28'}, {t:'n', f:'C28*12'}, {t:'n', f:'D28*12'}],
+            ['Year 2', {t:'n', f:'ROUND(B28*(1+B15),0)'}, {t:'n', f:'B29*B4'}, {t:'n', f:'B29*D13'}, {t:'n', f:'D29/C29'}, {t:'n', f:'C29*12'}, {t:'n', f:'D29*12'}],
+            ['Year 3', {t:'n', f:'ROUND(B29*(1+B15),0)'}, {t:'n', f:'B30*B4'}, {t:'n', f:'B30*D13'}, {t:'n', f:'D30/C30'}, {t:'n', f:'C30*12'}, {t:'n', f:'D30*12'}],
+            [],
+            ['BREAKEVEN ANALYSIS'],
+            ['Launch Investment', {t:'n', f:'Launch!B21'}],
+            ['Monthly Target Profit', {t:'n', f:'B19'}],
+            ['Months to Breakeven', {t:'n', f:'ABS(B33)/B34'}],
+        ];
+
+        const wsTarget = XLSX.utils.aoa_to_sheet(targetData);
+        wsTarget['!cols'] = [{wch:22},{wch:16},{wch:16},{wch:16},{wch:12},{wch:16},{wch:16}];
+
+        // Format percentages
+        ['B8','B9','B15','B20','E28','E29','E30'].forEach(ref => {
+            if(wsTarget[ref]) wsTarget[ref].z = '0.0%';
+        });
+        // Format currency
+        ['B4','B6','B7','B11','B12','B13','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13',
+         'B18','B19','B21','B22','B23','B24','B25',
+         'C28','C29','C30','D28','D29','D30','F28','F29','F30','G28','G29','G30',
+         'B33','B34'].forEach(ref => {
+            if(wsTarget[ref]) wsTarget[ref].z = '$#,##0.00';
+        });
+        ['B35'].forEach(ref => { if(wsTarget[ref]) wsTarget[ref].z = '0.0'; });
+
+        XLSX.utils.book_append_sheet(wb, wsTarget, 'Target');
+
+        const filename = productName.replace(/[^a-zA-Z0-9]/g, '_') + '_Launch_Model.xlsx';
+        XLSX.writeFile(wb, filename);
+    };
+
+    // === GOOGLE SHEETS MODAL ===
+    window.openSheetsModal = function() {
+        el('sheets-modal').classList.add('open');
+        el('sheets-form-view').style.display = '';
+        el('sheets-success-view').style.display = 'none';
+        el('lead-email').value = '';
+    };
+
+    window.closeSheetsModal = function() {
+        el('sheets-modal').classList.remove('open');
+    };
+
+    // Close modal on overlay click
+    el('sheets-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeSheetsModal();
+    });
+
+    window.submitSheetsForm = function() {
+        const email = el('lead-email').value.trim();
+
+        if (!email || !email.includes('@')) {
+            el('lead-email').style.borderColor = '#EF4444';
+            el('lead-email').focus();
+            return;
+        }
+        el('lead-email').style.borderColor = '';
+
+        // Submit to Google Form (configure these values)
+        const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfRBANYLPKxLlyjFytW1JvhQ9XomwiYX-8PiwFRGUsBqzt-0A/formResponse';
+        const EMAIL_FIELD = 'entry.1147083253';
+        const SHEETS_TEMPLATE_URL = 'https://docs.google.com/spreadsheets/d/1y79lXIRNf2NcK6ZUxVYKXrN77x_np99x/copy';
+
+        if (GOOGLE_FORM_URL && EMAIL_FIELD) {
+            // Submit via hidden iframe to avoid redirect
+            const params = new URLSearchParams();
+            params.append(EMAIL_FIELD, email);
+
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.name = 'gform-submit';
+            document.body.appendChild(iframe);
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = GOOGLE_FORM_URL;
+            form.target = 'gform-submit';
+
+            for (const [key, val] of params) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = val;
+                form.appendChild(input);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+
+            // Cleanup after a delay
+            setTimeout(() => {
+                form.remove();
+                iframe.remove();
+            }, 3000);
+        }
+
+        // Show success state
+        el('sheets-form-view').style.display = 'none';
+        el('sheets-success-view').style.display = '';
+
+        if (SHEETS_TEMPLATE_URL) {
+            el('sheets-template-link').href = SHEETS_TEMPLATE_URL;
+            el('sheets-template-link').style.display = '';
+        } else {
+            // No template configured — just export Excel as fallback
+            el('sheets-template-link').style.display = 'none';
+            el('sheets-success-view').querySelector('p:nth-of-type(2)').innerHTML =
+                'In the meantime, we\'ve downloaded an Excel version with all your numbers and formulas.';
+            exportToExcel();
+        }
+    };
+
+    // === BIND ALL INPUTS ===
+    document.querySelectorAll('input[type="number"], input[type="text"]').forEach(input => {
+        if (!input.id.includes('slider')) {
+            input.addEventListener('input', calculate);
+        }
+    });
+
+    // Initial calculation
+    calculate();
+
+})();
+</script>
+
+</body>
+</html>
